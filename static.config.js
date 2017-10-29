@@ -2,6 +2,8 @@ import axios from 'axios'
 import React, { Component } from 'react'
 import { ServerStyleSheet } from 'styled-components'
 
+const typescriptWebpackPaths = require("./webpack.config.js");
+
 export default {
   getSiteProps: () => ({
     title: 'React Static',
@@ -61,4 +63,46 @@ export default {
       )
     }
   },
+  webpack: (config, args) => {
+
+    // For Debug: Set to true to take a look at the final config.
+    const printWebpackConfigDuringBuild = false;
+    const { stage } = args; // is dev or prod
+
+    // Add .ts and .tsx extension to resolver
+    config.resolve.extensions.push(".ts", ".tsx");
+
+    // Add TypeScript Path Mappings (from tsconfig via webpack.config.js)
+    // to react-statics alias resolution
+    config.resolve.alias = typescriptWebpackPaths.resolve.alias;
+
+    // We replace the existing JS rule with one, that allows us to use
+    // both TypeScript and JavaScript interchangeably
+    config.module.rules[0] = {
+      test: /\.(js|jsx|ts|tsx)$/,
+      exclude: config.module.rules[0].exclude,
+      use: [
+        {
+          loader: "babel-loader"
+        },
+        {
+          loader: 'ts-loader',
+          options: {
+            transpileOnly: true
+          }
+        }
+      ]
+    };
+
+    // Whitelist ts(x) extensions from the universal url-loader, by overwriting
+    // the default exclude REGEX in static-react/src/webpack/rules
+    config.module.rules[2].exclude = /\.(js|jsx|css|ts|tsx)(\?.*)?$/ ;
+
+    // For Debugging and inspection. Final Webpack Config used during build.
+    if(printWebpackConfigDuringBuild && stage === "dev") {
+      const configString = JSON.stringify(config, null, 2);
+      console.log(configString);
+    }
+
+  }
 }
