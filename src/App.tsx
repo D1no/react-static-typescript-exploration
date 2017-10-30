@@ -7,7 +7,11 @@ import { Layout, Menu, Icon } from 'antd';
 const { Header, Sider, Content, Footer } = Layout;
 
 injectGlobal`
-
+  #root {
+    min-width: 100%;
+    min-height: 100%;
+    display: flex;
+  }
 `;
 
 const Logo = styled.div`
