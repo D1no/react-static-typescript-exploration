@@ -83,7 +83,7 @@ export default {
   webpack: (config, args) => {
 
     // For Debug: Set to true to take a look at the final config.
-    const printWebpackConfigDuringBuild = true;
+    const printWebpackConfigDuringBuild = false;
     const { stage } = args; // is dev or prod
 
     /*
@@ -129,6 +129,7 @@ export default {
 
     if (stage === 'dev') {
 
+      // In-Line with style-loader
       lessConfig =
         {
           test: /\.less$/,
@@ -175,60 +176,58 @@ export default {
 
     } else {
 
-    lessConfig =
-      {
-        test: /\.less$/,
-        loader: ExtractTextPlugin.extract({
-          fallback: {
-            loader: 'style-loader',
-            options: {
-              hmr: false,
-              sourceMap: false
-            },
-          },
-          use: [
-            {
-              loader: 'css-loader',
+      // Extract to style.css
+      lessConfig =
+        {
+          test: /\.less$/,
+          loader: ExtractTextPlugin.extract({
+            fallback: {
+              loader: 'style-loader',
               options: {
-                importLoaders: 1,
-                minimize: true,
-                sourceMap: false,
+                hmr: false,
+                sourceMap: false
               },
             },
-            {
-              loader: 'postcss-loader',
-              options: {
-                // Necessary for external CSS imports to work
-                // https://github.com/facebookincubator/create-react-app/issues/2677
-                ident: 'postcss',
-                plugins: () => [
-                  postcssFlexbugsFixes,
-                  autoprefixer({
-                    browsers: [
-                      '>1%',
-                      'last 4 versions',
-                      'Firefox ESR',
-                      'not ie < 9', // React doesn't support IE8 anyway
-                    ],
-                    flexbox: 'no-2009',
-                  }),
-                ],
+            use: [
+              {
+                loader: 'css-loader',
+                options: {
+                  importLoaders: 1,
+                  minimize: true,
+                  sourceMap: false,
+                },
               },
-            },
-            {
-              loader: "less-loader",
-              options: {
-                sourceMap: false,
-                modifyVars: themeVariables,
-                paths: [
-                  path.resolve(__dirname, "node_modules/andt/lib/style")
-                ]
+              {
+                loader: 'postcss-loader',
+                options: {
+                  // Necessary for external CSS imports to work
+                  // https://github.com/facebookincubator/create-react-app/issues/2677
+                  ident: 'postcss',
+                  plugins: () => [
+                    postcssFlexbugsFixes,
+                    autoprefixer({
+                      browsers: [
+                        '>1%',
+                        'last 4 versions',
+                        'Firefox ESR',
+                        'not ie < 9', // React doesn't support IE8 anyway
+                      ],
+                      flexbox: 'no-2009',
+                    }),
+                  ],
+                },
+              },
+              {
+                loader: "less-loader",
+                options: {
+                  sourceMap: false,
+                  modifyVars: themeVariables,
+                }
               }
-            }
-          ],
-        }),
+            ],
+          }),
+        }
       }
-    }
 
     // Add less config to rules
     config.module.rules.push(lessConfig);
